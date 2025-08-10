@@ -18,8 +18,8 @@ export default function HeroPromo() {
   };
 
   const sideTop = {
-    img: 'https://images.unsplash.com/photo-1600180758890-6b94519a8ba7?q=80&w=800',
-    title: 'Bolsos de cuero Unio',
+    img: 'https://acdn-us.mitiendanube.com/stores/004/516/166/products/union-1-2-cf02d98feca6d8da5b17389029953940-1024-1024.webp',
+    title: 'Bolsos de cuero Union',
     subtitle: '100% cuero hecho a mano',
     badge: '20% DTO',
     href: '/catalogo',
