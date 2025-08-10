@@ -1,4 +1,5 @@
 import './globals.css';
+import Footer from '../components/Footer';
 
 export const metadata = {
   title: 'Mi Tienda',
@@ -9,11 +10,12 @@ export default function RootLayout({ children }) {
   return (
     <html lang="es">
       <body>
-        <div className="topbar">
+        <header className="topbar">
           {/* Fila 1: logo + búsqueda + iconos (desktop) */}
           <div className="container topbar-inner">
             <div className="brand">
-              <img src="/logo 2x.png" alt="Yumix" style={{height:'64px',objectFit:'contain'}} />
+              {/* Ojo con el espacio en el nombre del archivo; ideal renombrar a /logo-2x.png */}
+              <img src="/logo 2x.png" alt="Yumix" style={{ height: '64px', objectFit: 'contain' }} />
             </div>
 
             <form className="search" action="/buscar" method="GET">
@@ -46,9 +48,7 @@ export default function RootLayout({ children }) {
           {/* Menú móvil (sin JS) */}
           <div className="container mobile-only">
             <details className="mobile-nav">
-              <summary aria-label="Abrir menú">
-                ☰ Menú
-              </summary>
+              <summary aria-label="Abrir menú">☰ Menú</summary>
               <div className="mobile-panel">
                 <form action="/buscar" method="GET" className="mobile-search">
                   <input name="q" type="search" placeholder="Buscar productos…" />
@@ -66,11 +66,14 @@ export default function RootLayout({ children }) {
               </div>
             </details>
           </div>
-        </div>
+        </header>
 
-        <main className="container" style={{padding:'22px 0'}}>
+        <main className="container" style={{ padding: '22px 0' }}>
           {children}
         </main>
+
+        {/* Footer agregado */}
+        <Footer />
       </body>
     </html>
   );
