@@ -19,7 +19,9 @@ html,body{
 
 .topbar{
   background:linear-gradient(90deg, var(--brand-primary), var(--brand-mid), var(--brand-accent));
-  padding:0; /* quitamos padding general, lo damos por secciones */
+  padding:0; /* padding por secciones */
+  position: sticky; top:0; z-index:50;            /* fija al hacer scroll */
+  box-shadow:0 2px 14px rgba(0,0,0,.12);          /* sombra sutil */
 }
 
 .container{
@@ -32,7 +34,7 @@ html,body{
   display:flex;
   align-items:center;
   gap:20px;
-  padding: 12px 0; /* padding solo para la fila superior */
+  padding: 12px 0; /* fila superior */
 }
 
 .brand{
@@ -89,7 +91,7 @@ html,body{
   color: #fff !important; /* iconos blancos */
 }
 
-/* Nueva fila para menú dentro de la franja */
+/* Fila 2: menú dentro de la franja */
 .topbar-menu{
   display:flex;
   align-items:center;
@@ -128,6 +130,66 @@ html,body{
 }
 
 /* Ocultar barra nav blanca antigua */
-.nav{
-  display:none;
+.nav{ display:none; }
+
+/* ---------- RESPONSIVE ---------- */
+.mobile-only{ display:none; }
+
+/* Desktop ≥ 900px */
+@media (min-width: 900px){
+  .search{ display:flex; }
+  .topbar-menu{ display:flex; }
 }
+
+/* Móvil < 900px */
+@media (max-width: 899px){
+  .search{ display:none; }          /* ocultamos la barra grande */
+  .topbar-menu{ display:none; }     /* ocultamos menú de escritorio */
+  .icons{ display:none; }           /* opcional: oculta iconos arriba */
+  .mobile-only{ display:block; }
+
+  .mobile-nav{
+    position: relative;
+    margin-top: 6px;
+  }
+  .mobile-nav > summary{
+    list-style: none;
+    cursor: pointer;
+    color:#fff;
+    background: rgba(0,0,0,.25);
+    border: 1px solid rgba(255,255,255,.2);
+    border-radius: 10px;
+    padding: 10px 14px;
+    width: max-content;
+    user-select: none;
+  }
+  .mobile-nav[open] > summary{
+    background: rgba(0,0,0,.35);
+  }
+  .mobile-panel{
+    margin-top: 10px;
+    background: rgba(255,255,255,.08);
+    border: 1px solid rgba(255,255,255,.2);
+    border-radius: 12px;
+    backdrop-filter: blur(6px);
+    padding: 12px;
+    color:#fff;
+  }
+  .mobile-search{
+    display:flex; gap:8px; margin-bottom:10px;
+  }
+  .mobile-search input{
+    flex:1; height:42px; border-radius:10px; border:1px solid transparent; padding:0 12px; background:#fff;
+  }
+  .mobile-search button{
+    height:42px; border:none; border-radius:10px; padding:0 14px; background:var(--brand-dark); color:#fff; font-weight:600;
+  }
+  .mobile-links{
+    display:grid; grid-template-columns:1fr 1fr; gap:8px;
+  }
+  .mobile-links a{
+    color:#fff; text-decoration:none; padding:10px 12px; background:rgba(0,0,0,.2); border-radius:10px; text-align:center;
+  }
+  .mobile-links a:hover{ background:rgba(0,0,0,.28); }
+}
+
