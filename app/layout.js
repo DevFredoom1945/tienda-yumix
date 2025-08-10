@@ -13,7 +13,7 @@ export default function RootLayout({ children }) {
         <div className="topbar">
           <div className="container topbar-inner">
             <div className="brand">
-              <img src="/logo.png" alt="Yumix" style={{height:'44px',objectFit:'contain'}} />
+              <img src="/logo 2.png" alt="Yumix" style={{height:'80px',objectFit:'contain'}} />
             </div>
 
             <form className="search" action="/buscar" method="GET">
