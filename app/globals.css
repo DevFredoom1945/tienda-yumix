@@ -1,54 +1,55 @@
 :root{
-  --brand-primary:#ff6a5f;   /* coral del logo */
-  --brand-accent:#00e0c6;    /* verde-agua del logo */
-  --brand-dark:#22332a;      /* fondo oscuro sugerido */
+  --brand-primary:#ff6a5f;
+  --brand-accent:#00e0c6;
+  --brand-dark:#22332a;
   --text:#1a1a1a;
   --muted:#6b7280;
   --bg:#ffffff;
   --border:#e5e7eb;
 }
 
-*{box-sizing:border-box}
 html,body{padding:0;margin:0;background:var(--bg);color:var(--text);font-family:system-ui,Arial}
 
 .topbar{
   background:linear-gradient(90deg,var(--brand-primary),var(--brand-accent));
-  padding:10px 0;
+  padding:18px 0; /* más gruesa */
 }
 
-.container{max-width:1080px;margin:0 auto;padding:0 16px}
+.container{max-width:1200px;margin:0 auto;padding:0 16px}
 
 .topbar-inner{
-  display:flex;align-items:center;gap:14px;
+  display:flex;align-items:center;gap:20px;
 }
 
 .brand{
-  font-weight:800;font-size:20px;color:#fff;letter-spacing:.2px;white-space:nowrap
+  font-weight:800;font-size:22px;color:#fff;white-space:nowrap
 }
 
 .search{
   flex:1;display:flex;gap:8px
 }
 .search input{
-  flex:1;height:40px;border-radius:10px;border:1px solid transparent;
-  padding:0 14px;background:#ffffff;outline:none;
+  flex:1;height:44px;border-radius:10px;border:1px solid transparent;
+  padding:0 14px;background:#fff;outline:none;
 }
 .search input:focus{border-color:var(--brand-accent);box-shadow:0 0 0 3px rgba(0,224,198,.25)}
 .search button{
-  height:40px;border:none;border-radius:10px;padding:0 16px;cursor:pointer;
+  height:44px;border:none;border-radius:10px;padding:0 18px;cursor:pointer;
   background:var(--brand-dark);color:#fff;font-weight:600;
 }
 
-.accent{
-  height:6px;background:linear-gradient(90deg,var(--brand-accent),var(--brand-primary));
+.icons{
+  display:flex;align-items:center;gap:18px;color:#fff;
 }
+.icons span{cursor:pointer;display:flex;align-items:center;gap:6px;font-size:14px}
 
 .nav{
   background:#fff;border-bottom:1px solid var(--border);
 }
 .nav-inner{
   display:flex;justify-content:space-between;align-items:center;
-  gap:16px;height:54px;
+  gap:16px;height:50px;
 }
-.nav a{color:#111;text-decoration:none;padding:8px 10px;border-radius:8px}
+.nav a{color:#111;text-decoration:none;padding:8px 10px;border-radius:8px;font-size:14px}
 .nav a:hover{background:#f7f7f7}
+
