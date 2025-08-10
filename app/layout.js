@@ -14,7 +14,7 @@ export default function RootLayout({ children }) {
           <div className="container topbar-inner">
             <div className="brand">
   <img
-    src="/logo.png"
+    src="/logo 2.png"
     alt="Yumix"
     style={{
       height: '100px',            // ajusta si lo quieres más grande
