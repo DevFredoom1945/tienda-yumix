@@ -9,28 +9,15 @@ export default function RootLayout({ children }) {
   return (
     <html lang="es">
       <body>
-        {/* TOPBAR con logo, búsqueda e íconos */}
+        {/* TOPBAR con logo, búsqueda, iconos y MENÚ */}
         <div className="topbar">
           <div className="container topbar-inner">
             <div className="brand">
-  <img
-    src="/logo 2.png"
-    alt="Yumix"
-    style={{
-      height: '100px',            // ajusta si lo quieres más grande
-     
-    }}
-  />
-</div>
-
+              <img src="/logo.png" alt="Yumix" style={{height:'44px',objectFit:'contain'}} />
+            </div>
 
             <form className="search" action="/buscar" method="GET">
-              <input
-                name="q"
-                type="search"
-                placeholder="Estoy buscando..."
-                aria-label="Buscar productos"
-              />
+              <input name="q" type="search" placeholder="Estoy buscando..." aria-label="Buscar productos" />
               <button type="submit">Buscar</button>
             </form>
 
@@ -40,20 +27,24 @@ export default function RootLayout({ children }) {
               <span>👤 Login</span>
             </div>
           </div>
-        </div>
 
-        {/* NAV inferior */}
-        <div className="nav">
-          <div className="container nav-inner">
-            <nav style={{display:'flex', gap:12}}>
+          {/* MENÚ dentro de la franja */}
+          <div className="container topbar-menu">
+            <nav>
               <a href="/">Inicio</a>
               <a href="/catalogo">Catálogo</a>
               <a href="/ofertas">Ofertas</a>
               <a href="/contacto">Contacto</a>
             </nav>
-            <div style={{fontSize:12,color:'var(--muted)'}}>© {new Date().getFullYear()} Yumix</div>
+            <div className="topbar-right">
+              <a href="/vender">Vende con nosotros</a>
+              <span className="divider">|</span>
+              <a href="/rastreo">Rastrea tu pedido</a>
+            </div>
           </div>
         </div>
+
+        {/* (Quitamos la nav blanca de abajo) */}
 
         <main className="container" style={{padding:'22px 0'}}>
           {children}
