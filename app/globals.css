@@ -12,7 +12,7 @@ html,body{padding:0;margin:0;background:var(--bg);color:var(--text);font-family:
 
 .topbar{
   background:linear-gradient(90deg,var(--brand-primary),var(--brand-accent));
-  padding:18px 0; /* más gruesa */
+  padding:22px 0; /* más gruesa */
 }
 
 .container{max-width:1200px;margin:0 auto;padding:0 16px}
