@@ -22,7 +22,7 @@ export default function RootLayout({ children }) {
       filter: 'drop-shadow(0 0 6px rgba(0,0,0,.45))', // contraste sobre el fondo
       backgroundColor: 'rgba(255,255,255,.14)',       // leve placa para legibilidad
       borderRadius: '10px',
-      padding: '4px 8px'
+      padding: '20px 20px'
     }}
   />
 </div>
