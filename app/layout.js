@@ -9,7 +9,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="es">
       <body>
-        {/* TOP BAR con búsqueda */}
+        {/* TOPBAR con logo, búsqueda e íconos */}
         <div className="topbar">
           <div className="container topbar-inner">
             <div className="brand">Yumix</div>
@@ -23,18 +23,23 @@ export default function RootLayout({ children }) {
               />
               <button type="submit">Buscar</button>
             </form>
+
+            <div className="icons">
+              <span>❤️ Favoritos</span>
+              <span>🛒 Carrito (0)</span>
+              <span>👤 Login</span>
+            </div>
           </div>
         </div>
 
-        {/* Franja de color (branding) */}
-        <div className="accent" />
-
-        {/* NAV sencilla */}
+        {/* NAV inferior */}
         <div className="nav">
           <div className="container nav-inner">
             <nav style={{display:'flex', gap:12}}>
               <a href="/">Inicio</a>
               <a href="/catalogo">Catálogo</a>
+              <a href="/ofertas">Ofertas</a>
+              <a href="/contacto">Contacto</a>
             </nav>
             <div style={{fontSize:12,color:'var(--muted)'}}>© {new Date().getFullYear()} Yumix</div>
           </div>
@@ -47,5 +52,3 @@ export default function RootLayout({ children }) {
     </html>
   );
 }
-
-
