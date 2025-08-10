@@ -1,3 +1,5 @@
+import './globals.css';
+
 export const metadata = {
   title: 'Mi Tienda',
   description: 'Tienda simple en Next.js lista para Vercel',
@@ -6,26 +8,44 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="es">
-      <body style={{fontFamily:'system-ui, Arial', margin:0}}>
-        <header style={{padding:'12px 20px', borderBottom:'1px solid #eee', position:'sticky', top:0, background:'#fff'}}>
-          <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', maxWidth:980, margin:'0 auto'}}>
-            <strong>MiTienda</strong>
+      <body>
+        {/* TOP BAR con búsqueda */}
+        <div className="topbar">
+          <div className="container topbar-inner">
+            <div className="brand">Yumix</div>
+
+            <form className="search" action="/buscar" method="GET">
+              <input
+                name="q"
+                type="search"
+                placeholder="Estoy buscando..."
+                aria-label="Buscar productos"
+              />
+              <button type="submit">Buscar</button>
+            </form>
+          </div>
+        </div>
+
+        {/* Franja de color (branding) */}
+        <div className="accent" />
+
+        {/* NAV sencilla */}
+        <div className="nav">
+          <div className="container nav-inner">
             <nav style={{display:'flex', gap:12}}>
               <a href="/">Inicio</a>
               <a href="/catalogo">Catálogo</a>
             </nav>
+            <div style={{fontSize:12,color:'var(--muted)'}}>© {new Date().getFullYear()} Yumix</div>
           </div>
-        </header>
-        <main style={{maxWidth:980, margin:'24px auto', padding:'0 16px'}}>
+        </div>
+
+        <main className="container" style={{padding:'22px 0'}}>
           {children}
         </main>
-        <footer style={{padding:'24px', borderTop:'1px solid #eee'}}>
-          <div style={{maxWidth:980, margin:'0 auto', fontSize:12, color:'#666'}}>
-            © {new Date().getFullYear()} Mi Tienda.
-          </div>
-        </footer>
       </body>
     </html>
   );
 }
+
 
