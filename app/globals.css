@@ -1,5 +1,5 @@
 :root{
-  --brand-primary:#ff6a5f;
+  --brand-primary:#000000; /* Antes era #ff6a5f, ahora negro */
   --brand-accent:#00e0c6;
   --brand-dark:#22332a;
   --text:#1a1a1a;
