@@ -213,3 +213,44 @@ html,body{
   .cats-grid{ grid-template-columns: repeat(2, 1fr); gap:14px; }
   .cat-imgwrap{ height:96px; }
 }
+
+/* -------- Footer -------- */
+.site-footer{
+  background:#fff; border-top:1px solid var(--border); margin-top:32px;
+}
+.site-footer a{ color:#111; text-decoration:none; }
+.site-footer a:hover{ text-decoration:underline; }
+.site-footer .muted{ color:#6b7280; }
+
+.footer-top{
+  display:grid; gap:24px; padding:32px 16px;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+}
+.footer-col h4{ margin:0 0 10px; font-size:16px; font-weight:800; }
+.footer-col ul{ list-style:none; margin:0; padding:0; display:grid; gap:10px; }
+.bigphone{ font-size:28px; font-weight:800; color:#f5b700; margin:4px 0 8px; }
+.socials{ display:flex; gap:12px; margin-top:8px; font-size:18px; }
+
+.footer-cats{
+  border-top:1px solid var(--border);
+  border-bottom:1px solid var(--border);
+  padding:18px 16px; display:grid; gap:8px;
+  font-size:14px;
+}
+
+.footer-bottom{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:16px;
+}
+.pay-logos{ display:flex; gap:12px; align-items:center; }
+.pay-logos img{ height:24px; width:auto; display:block; }
+
+/* Responsive */
+@media (max-width: 900px){
+  .footer-top{ grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 640px){
+  .footer-top{ grid-template-columns: 1fr; }
+  .footer-bottom{ flex-direction:column; gap:10px; text-align:center; }
+  .pay-logos{ justify-content:center; flex-wrap:wrap; }
+}
