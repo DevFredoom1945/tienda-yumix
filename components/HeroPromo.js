@@ -1,5 +1,5 @@
+// components/HeroPromo.js
 export default function HeroPromo() {
-  // Cambia estas URLs/títulos/CTAs por los tuyos
   const main = {
     img: "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?q=80&w=1400",
     eyebrow: "Limited Edition",
@@ -26,7 +26,6 @@ export default function HeroPromo() {
 
   return (
     <div className="hero container">
-      {/* Banner principal */}
       <a className="hero-main" href={main.ctaHref}>
         <img src={main.img} alt="Hero" />
         <div className="hero-main-overlay">
@@ -36,7 +35,6 @@ export default function HeroPromo() {
         </div>
       </a>
 
-      {/* Columna lateral con dos promos */}
       <div className="hero-side">
         {[sideTop, sideBottom].map((p, i) => (
           <a className="hero-card" href={p.href} key={i}>
@@ -54,3 +52,4 @@ export default function HeroPromo() {
     </div>
   );
 }
+
