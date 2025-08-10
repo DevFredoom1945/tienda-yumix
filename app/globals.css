@@ -19,7 +19,7 @@ html,body{
 
 .topbar{
   background:linear-gradient(90deg, var(--brand-primary), var(--brand-mid), var(--brand-accent));
-  padding:22px 0; /* más gruesa */
+  padding:0; /* quitamos padding general, lo damos por secciones */
 }
 
 .container{
@@ -32,6 +32,7 @@ html,body{
   display:flex;
   align-items:center;
   gap:20px;
+  padding: 12px 0; /* padding solo para la fila superior */
 }
 
 .brand{
@@ -88,24 +89,45 @@ html,body{
   color: #fff !important; /* iconos blancos */
 }
 
-.nav{
-  background:#fff;
-  border-bottom:1px solid var(--border);
-}
-.nav-inner{
+/* Nueva fila para menú dentro de la franja */
+.topbar-menu{
   display:flex;
-  justify-content:space-between;
   align-items:center;
-  gap:16px;
-  height:50px;
+  justify-content:space-between;
+  height:48px;
+  color:#fff;
 }
-.nav a{
-  color:#111;
+
+.topbar-menu nav{
+  display:flex;
+  gap:18px;
+}
+.topbar-menu nav a{
+  color:#fff;
   text-decoration:none;
   padding:8px 10px;
   border-radius:8px;
-  font-size:14px
+  font-weight:500;
 }
-.nav a:hover{
-  background:#f7f7f7
+.topbar-menu nav a:hover{
+  background:rgba(255,255,255,.12);
+}
+
+.topbar-right{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  font-size:14px;
+}
+.topbar-right a{
+  color:#fff;
+  text-decoration:none;
+}
+.topbar-right .divider{
+  opacity:.6;
+}
+
+/* Ocultar barra nav blanca antigua */
+.nav{
+  display:none;
 }
