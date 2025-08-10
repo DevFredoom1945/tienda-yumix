@@ -12,7 +12,21 @@ export default function RootLayout({ children }) {
         {/* TOPBAR con logo, búsqueda e íconos */}
         <div className="topbar">
           <div className="container topbar-inner">
-            <div className="brand">Yumix</div>
+            <div className="brand">
+  <img
+    src="/logo.png"
+    alt="Yumix"
+    style={{
+      height: '44px',            // ajusta si lo quieres más grande
+      objectFit: 'contain',
+      filter: 'drop-shadow(0 0 6px rgba(0,0,0,.45))', // contraste sobre el fondo
+      backgroundColor: 'rgba(255,255,255,.14)',       // leve placa para legibilidad
+      borderRadius: '10px',
+      padding: '4px 8px'
+    }}
+  />
+</div>
+
 
             <form className="search" action="/buscar" method="GET">
               <input
