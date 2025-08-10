@@ -2,7 +2,7 @@
 
 const CATEGORIES = [
   { title: 'Electrónica',        img: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?q=80&w=600' },
-  { title: 'Ropa',               img: 'https://images.unsplash.com/photo-1520974735194-45b0f2ad4053?q=80&w=600' },
+  { title: 'Ropa',               img: 'https://i.ebayimg.com/thumbs/images/g/lroAAeSwCGBoevQJ/s-l1200.jpg' },
   { title: 'Computadores',       img: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?q=80&w=600' },
   { title: 'Hogar y Cocina',     img: 'https://images.unsplash.com/photo-1501045661006-fcebe0257c3f?q=80&w=600' },
   { title: 'Salud y Belleza',    img: 'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?q=80&w=600' },
