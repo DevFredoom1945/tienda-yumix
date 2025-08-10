@@ -1,55 +1,35 @@
 // components/HeroPromo.js
+
 export default function HeroPromo() {
-  const main = {
-    img: "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?q=80&w=1400",
-    eyebrow: "Limited Edition",
-    title: <>SCANDINAVIAN COLLECTION FOR YOUR<br/>BEDROOM JUST <span className="price">$599</span></>,
-    ctaText: "Shop Now",
-    ctaHref: "/catalogo"
-  };
-
-  const sideTop = {
-    img: "https://images.unsplash.com/photo-1512428559087-560fa5ceab42?q=80&w=800",
-    title: "Unio Leather Bags",
-    subtitle: "100% leather handmade",
-    badge: "20% OFF",
-    href: "/catalogo"
-  };
-
-  const sideBottom = {
-    img: "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?q=80&w=800",
-    title: "iPhone 6+ 32Gb",
-    subtitle: "Best smartphone on the world",
-    badge: "40% OFF",
-    href: "/catalogo"
-  };
-
   return (
-    <div className="hero container">
-      <a className="hero-main" href={main.ctaHref}>
-        <img src={main.img} alt="Hero" />
-        <div className="hero-main-overlay">
-          <div className="hero-eyebrow">{main.eyebrow}</div>
-          <h2 className="hero-title">{main.title}</h2>
-          <button className="hero-cta">{main.ctaText}</button>
-        </div>
-      </a>
+    <section className="hero-promo">
+      <div className="hero-main">
+        <span className="hero-label">Edición Limitada</span>
+        <h1 className="hero-title">
+          COLECCIÓN ESCANDINAVA PARA TU HABITACIÓN SOLO <span className="hero-price">$599</span>
+        </h1>
+        <button className="hero-btn">Comprar ahora</button>
+      </div>
 
       <div className="hero-side">
-        {[sideTop, sideBottom].map((p, i) => (
-          <a className="hero-card" href={p.href} key={i}>
-            <img src={p.img} alt={p.title} />
-            <div className="hero-card-overlay">
-              <div>
-                <h3 className="hero-card-title">{p.title}</h3>
-                <p className="hero-card-sub">{p.subtitle}</p>
-              </div>
-              <span className="hero-badge">{p.badge}</span>
-            </div>
-          </a>
-        ))}
+        <div className="promo-card">
+          <img src="https://images.unsplash.com/photo-1600180758890-6b94519a8ba7?q=80&w=600" alt="Bolsos de cuero" />
+          <div className="promo-info">
+            <h3 className="promo-title">Bolsos de cuero Unio</h3>
+            <p className="promo-sub">100% cuero hecho a mano</p>
+            <span className="promo-discount">20% DTO</span>
+          </div>
+        </div>
+
+        <div className="promo-card">
+          <img src="https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?q=80&w=600" alt="iPhone 6+ 32Gb" />
+          <div className="promo-info">
+            <h3 className="promo-title">iPhone 6+ 32Gb</h3>
+            <p className="promo-sub">El mejor smartphone del mundo</p>
+            <span className="promo-discount">40% DTO</span>
+          </div>
+        </div>
       </div>
-    </div>
+    </section>
   );
 }
-
