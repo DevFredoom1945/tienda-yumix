@@ -9,11 +9,11 @@ export default function RootLayout({ children }) {
   return (
     <html lang="es">
       <body>
-        {/* TOPBAR con logo, búsqueda, iconos y MENÚ */}
         <div className="topbar">
+          {/* Fila 1: logo + búsqueda + iconos (desktop) */}
           <div className="container topbar-inner">
             <div className="brand">
-              <img src="/logo 2x.png" alt="Yumix" style={{height:'80px',objectFit:'contain'}} />
+              <img src="/logo.png" alt="Yumix" style={{height:'44px',objectFit:'contain'}} />
             </div>
 
             <form className="search" action="/buscar" method="GET">
@@ -28,10 +28,10 @@ export default function RootLayout({ children }) {
             </div>
           </div>
 
-          {/* MENÚ dentro de la franja */}
+          {/* Fila 2: menú (desktop) */}
           <div className="container topbar-menu">
             <nav>
-              <a href="/">Inicio</a>
+              <a href="/" className="active">Inicio</a>
               <a href="/catalogo">Catálogo</a>
               <a href="/ofertas">Ofertas</a>
               <a href="/contacto">Contacto</a>
@@ -42,9 +42,31 @@ export default function RootLayout({ children }) {
               <a href="/rastreo">Rastrea tu pedido</a>
             </div>
           </div>
-        </div>
 
-        {/* (Quitamos la nav blanca de abajo) */}
+          {/* Menú móvil (sin JS) */}
+          <div className="container mobile-only">
+            <details className="mobile-nav">
+              <summary aria-label="Abrir menú">
+                ☰ Menú
+              </summary>
+              <div className="mobile-panel">
+                <form action="/buscar" method="GET" className="mobile-search">
+                  <input name="q" type="search" placeholder="Buscar productos…" />
+                  <button type="submit">Buscar</button>
+                </form>
+                <nav className="mobile-links">
+                  <a href="/">Inicio</a>
+                  <a href="/catalogo">Catálogo</a>
+                  <a href="/ofertas">Ofertas</a>
+                  <a href="/contacto">Contacto</a>
+                  <a href="/vender">Vende con nosotros</a>
+                  <a href="/rastreo">Rastrea tu pedido</a>
+                  <a href="/login">Login</a>
+                </nav>
+              </div>
+            </details>
+          </div>
+        </div>
 
         <main className="container" style={{padding:'22px 0'}}>
           {children}
