@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import HeroPromo from '@/components/HeroPromo'; // Asegúrate de crear este componente como te pasé antes
+import HeroPromo from '/components/HeroPromo'; // Asegúrate de crear este componente como te pasé antes
 
 export default function Home() {
   return (
