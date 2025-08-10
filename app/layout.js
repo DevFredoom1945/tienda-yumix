@@ -18,11 +18,7 @@ export default function RootLayout({ children }) {
     alt="Yumix"
     style={{
       height: '100px',            // ajusta si lo quieres más grande
-      objectFit: 'contain',
-      filter: 'drop-shadow(0 0 6px rgba(0,0,0,.45))', // contraste sobre el fondo
-      backgroundColor: 'rgba(255,255,255,.14)',       // leve placa para legibilidad
-      borderRadius: '10px',
-      padding: '20px 20px'
+     
     }}
   />
 </div>
