@@ -23,11 +23,12 @@ export default function RootLayout({ children }) {
               <button type="submit">Buscar</button>
             </form>
 
-            <div className="icons">
-              <span>❤️ Favoritos</span>
-              <span>🛒 Carrito (0)</span>
-              <span>👤 Login</span>
-            </div>
+          <div className="icons">
+  <span>❤️ Favoritos</span>
+  <span>🛒 Carrito (0)</span>
+  <a href="/login" style={{ color:'#fff', textDecoration:'none' }}>👤 Login</a>
+</div>
+
           </div>
 
           {/* Fila 2: menú (desktop) */}
