@@ -1,10 +1,12 @@
-'use client';
+// app/registro/page.jsx
+import { Suspense } from 'react';
 
-import { useState } from 'react';
-import { supabase } from '../../lib/supabase/client';
-import { useRouter } from 'next/navigation';
+function RegisterClient() {
+  'use client';
+  import { useState } from 'react';
+  import { useRouter } from 'next/navigation';
+  import { supabase } from '../../lib/supabase/client';
 
-export default function RegisterPage() {
   const [email,setEmail]=useState('');
   const [password,setPassword]=useState('');
   const [name,setName]=useState('');
@@ -14,19 +16,13 @@ export default function RegisterPage() {
   const onSubmit = async (e)=>{
     e.preventDefault();
     setError('');
-
     const { data, error } = await supabase.auth.signUp({ email, password });
     if (error) return setError(error.message);
 
     const userId = data.user?.id;
-    try {
-      if (userId) {
-        await supabase.from('profiles').upsert({ id:userId, full_name:name });
-      }
-    } catch (err) {
-      // no bloquees el flujo si falla, lo podrás completar luego
+    if (userId) {
+      await supabase.from('profiles').upsert({ id:userId, full_name:name });
     }
-
     router.push('/cuenta');
   };
 
@@ -42,5 +38,13 @@ export default function RegisterPage() {
         <a href="/login">¿Ya tienes cuenta? Inicia sesión</a>
       </form>
     </section>
+  );
+}
+
+export default function Page() {
+  return (
+    <Suspense fallback={null}>
+      <RegisterClient />
+    </Suspense>
   );
 }
