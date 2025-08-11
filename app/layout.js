@@ -2,7 +2,7 @@ import './globals.css';
 import Footer from '../components/Footer';
 
 export const metadata = {
-  title: 'Mi Tienda',
+  title: 'Yumix',
   description: 'Tienda simple en Next.js lista para Vercel',
 };
 
