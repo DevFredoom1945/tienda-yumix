@@ -7,7 +7,7 @@ export const metadata = {
   title: 'Yumix',
   description: 'Tienda simple en Next.js lista para Vercel',
   icons: {
-    icon: '/favicon.ico', // asegúrate de tener /public/favicon.ico
+    icon: '/favicon.ico.png', // asegúrate de tener /public/favicon.ico
   },
 };
 
