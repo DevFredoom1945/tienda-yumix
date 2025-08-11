@@ -30,6 +30,7 @@ export default function AuthPage() {
   const signUpWithEmail = async (e) => {
     e.preventDefault();
     setError(''); setLoading(true);
+
     const { data, error } = await supabase.auth.signUp({
       email: email.trim(),
       password
@@ -40,6 +41,7 @@ export default function AuthPage() {
     if (userId) {
       await supabase.from('profiles').upsert({ id: userId, full_name: name || null });
     }
+
     setLoading(false);
     router.push('/cuenta');
   };
@@ -54,8 +56,10 @@ export default function AuthPage() {
 
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
-        options: { redirectTo: `${origin}/cuenta` }
+        // 👇 redirige a nuestro callback para canjear el code y poner cookies
+        options: { redirectTo: `${origin}/auth/callback?next=/cuenta` }
       });
+
       if (error) setError(error.message);
     } finally {
       setOauthLoading(false);
