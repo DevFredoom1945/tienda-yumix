@@ -21,7 +21,7 @@ export default async function RootLayout({ children }) {
           <div className="container topbar-inner">
             <div className="brand">
               {/* Renombra el archivo a /public/logo-2x.png */}
-              <img src="/logo-2x.png" alt="Yumix" style={{ height: 64, objectFit: 'contain' }} />
+              <img src="/logo 2x.png" alt="Yumix" style={{ height: 64, objectFit: 'contain' }} />
             </div>
 
             <form className="search" action="/buscar" method="GET">
