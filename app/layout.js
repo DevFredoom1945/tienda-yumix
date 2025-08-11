@@ -1,12 +1,18 @@
+// app/layout.js
 import './globals.css';
 import Footer from '../components/Footer';
+import { createClient } from '../lib/supabase/server';
 
 export const metadata = {
   title: 'Yumix',
   description: 'Tienda simple en Next.js lista para Vercel',
 };
 
-export default function RootLayout({ children }) {
+export default async function RootLayout({ children }) {
+  // Lee la sesión en el servidor para pintar Login/Mi cuenta
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
   return (
     <html lang="es">
       <body>
@@ -14,8 +20,8 @@ export default function RootLayout({ children }) {
           {/* Fila 1: logo + búsqueda + iconos (desktop) */}
           <div className="container topbar-inner">
             <div className="brand">
-              {/* Ojo con el espacio en el nombre del archivo; ideal renombrar a /logo-2x.png */}
-              <img src="/logo 2x.png" alt="Yumix" style={{ height: '64px', objectFit: 'contain' }} />
+              {/* Renombra el archivo a /public/logo-2x.png */}
+              <img src="/logo-2x.png" alt="Yumix" style={{ height: 64, objectFit: 'contain' }} />
             </div>
 
             <form className="search" action="/buscar" method="GET">
@@ -23,12 +29,13 @@ export default function RootLayout({ children }) {
               <button type="submit">Buscar</button>
             </form>
 
-          <div className="icons">
-  <span>❤️ Favoritos</span>
-  <span>🛒 Carrito (0)</span>
-  <a href="/login" style={{ color:'#fff', textDecoration:'none' }}>👤 Login</a>
-</div>
-
+            <div className="icons">
+              <span>❤️ Favoritos</span>
+              <span>🛒 Carrito (0)</span>
+              {user
+                ? <a href="/cuenta" style={{ color:'#fff', textDecoration:'none' }}>👤 Mi cuenta</a>
+                : <a href="/login"  style={{ color:'#fff', textDecoration:'none' }}>👤 Login</a>}
+            </div>
           </div>
 
           {/* Fila 2: menú (desktop) */}
@@ -46,7 +53,7 @@ export default function RootLayout({ children }) {
             </div>
           </div>
 
-          {/* Menú móvil (sin JS) */}
+          {/* Menú móvil */}
           <div className="container mobile-only">
             <details className="mobile-nav">
               <summary aria-label="Abrir menú">☰ Menú</summary>
@@ -62,7 +69,7 @@ export default function RootLayout({ children }) {
                   <a href="/contacto">Contacto</a>
                   <a href="/vender">Vende con nosotros</a>
                   <a href="/rastreo">Rastrea tu pedido</a>
-                  <a href="/login">Login</a>
+                  {user ? <a href="/cuenta">Mi cuenta</a> : <a href="/login">Login</a>}
                 </nav>
               </div>
             </details>
@@ -73,9 +80,9 @@ export default function RootLayout({ children }) {
           {children}
         </main>
 
-        {/* Footer agregado */}
         <Footer />
       </body>
     </html>
   );
 }
+
