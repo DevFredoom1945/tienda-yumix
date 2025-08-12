@@ -5,10 +5,8 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '../../lib/supabase/client';
 
-const OAUTH_REDIRECT = 'https://yumix.com.co/auth/v1/callback';
-
 export default function AuthPage() {
-  const [mode, setMode] = useState('login'); // 'login' | 'register'
+  const [mode, setMode] = useState<'login' | 'register'>('login');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -17,7 +15,7 @@ export default function AuthPage() {
   const [oauthLoading, setOauthLoading] = useState(false);
   const router = useRouter();
 
-  const signInWithEmail = async (e) => {
+  const signInWithEmail = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setLoading(true);
@@ -32,7 +30,7 @@ export default function AuthPage() {
     router.push('/cuenta');
   };
 
-  const signUpWithEmail = async (e) => {
+  const signUpWithEmail = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setLoading(true);
@@ -49,10 +47,9 @@ export default function AuthPage() {
 
     const userId = data.user?.id;
     if (userId) {
-      await supabase.from('profiles').upsert({
-        id: userId,
-        full_name: name || null,
-      });
+      await supabase
+        .from('profiles')
+        .upsert({ id: userId, full_name: name || null });
     }
 
     setLoading(false);
@@ -64,11 +61,18 @@ export default function AuthPage() {
       setError('');
       setOauthLoading(true);
 
-      // redirección EXACTA registrada en Google Cloud y Supabase
+      // Dominios a los que queremos volver DESPUÉS de que Supabase
+      // complete el intercambio de OAuth.
+      const origin =
+        typeof window !== 'undefined'
+          ? window.location.origin
+          : 'https://yumix.com.co';
+
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: OAUTH_REDIRECT,
+          // <<-- IMPORTANTE: tu SITIO, no el callback de Supabase
+          redirectTo: `${origin}/cuenta`,
         },
       });
 
@@ -171,20 +175,14 @@ export default function AuthPage() {
           {mode === 'login' ? (
             <a
               href="/registro"
-              onClick={(e) => {
-                e.preventDefault();
-                setMode('register');
-              }}
+              onClick={(e) => { e.preventDefault(); setMode('register'); }}
             >
               ¿No tienes cuenta? Regístrate
             </a>
           ) : (
             <a
               href="/login"
-              onClick={(e) => {
-                e.preventDefault();
-                setMode('login');
-              }}
+              onClick={(e) => { e.preventDefault(); setMode('login'); }}
             >
               ¿Ya tienes cuenta? Inicia sesión
             </a>
@@ -195,3 +193,5 @@ export default function AuthPage() {
     </section>
   );
 }
+
+       
