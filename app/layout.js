@@ -12,8 +12,15 @@ export const metadata = {
 };
 
 export default async function RootLayout({ children }) {
-  const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  // Nunca dejes que un fallo de Supabase rompa el layout
+  let user = null;
+  try {
+    const supabase = createClient();
+    const { data } = await supabase.auth.getUser();
+    user = data?.user ?? null;
+  } catch {
+    user = null;
+  }
 
   return (
     <html lang="es">
@@ -22,8 +29,9 @@ export default async function RootLayout({ children }) {
           {/* Fila 1: logo + búsqueda + iconos (desktop) */}
           <div className="container topbar-inner">
             <div className="brand">
-              {/* Renombra el archivo a /public/logo-2x.png para evitar el espacio */}
+              {/* Recomendado: renombra el archivo en /public a logo-2x.png (sin espacio) */}
               <img src="/logo 2x.png" alt="Yumix" style={{ height: 64, objectFit: 'contain' }} />
+              {/* Si lo renombras: <img src="/logo 2x.png" ... /> */}
             </div>
 
             <form className="search" action="/buscar" method="GET">
