@@ -5,6 +5,8 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '../../lib/supabase/client';
 
+const OAUTH_REDIRECT = 'https://yumix.com.co/auth/v1/callback';
+
 export default function AuthPage() {
   const [mode, setMode] = useState('login'); // 'login' | 'register'
   const [name, setName] = useState('');
@@ -19,10 +21,12 @@ export default function AuthPage() {
     e.preventDefault();
     setError('');
     setLoading(true);
+
     const { error } = await supabase.auth.signInWithPassword({
       email: email.trim(),
       password,
     });
+
     setLoading(false);
     if (error) return setError(error.message);
     router.push('/cuenta');
@@ -37,6 +41,7 @@ export default function AuthPage() {
       email: email.trim(),
       password,
     });
+
     if (error) {
       setLoading(false);
       return setError(error.message);
@@ -59,16 +64,11 @@ export default function AuthPage() {
       setError('');
       setOauthLoading(true);
 
-      const origin =
-        typeof window !== 'undefined'
-          ? window.location.origin
-          : 'https://yumix.com.co';
-
-      // IMPORTANTE: usar /auth/v1/callback
+      // redirección EXACTA registrada en Google Cloud y Supabase
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${origin}/auth/v1/callback?next=/cuenta`,
+          redirectTo: OAUTH_REDIRECT,
         },
       });
 
