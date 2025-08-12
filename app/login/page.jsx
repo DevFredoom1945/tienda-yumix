@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { supabase } from '../../lib/supabase/client';
 
 export default function AuthPage() {
-  const [mode, setMode] = useState<'login' | 'register'>('login');
+  const [mode, setMode] = useState('login'); // 'login' | 'register'
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -15,7 +15,7 @@ export default function AuthPage() {
   const [oauthLoading, setOauthLoading] = useState(false);
   const router = useRouter();
 
-  const signInWithEmail = async (e: React.FormEvent) => {
+  const signInWithEmail = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
@@ -30,7 +30,7 @@ export default function AuthPage() {
     router.push('/cuenta');
   };
 
-  const signUpWithEmail = async (e: React.FormEvent) => {
+  const signUpWithEmail = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
@@ -47,9 +47,10 @@ export default function AuthPage() {
 
     const userId = data.user?.id;
     if (userId) {
-      await supabase
-        .from('profiles')
-        .upsert({ id: userId, full_name: name || null });
+      await supabase.from('profiles').upsert({
+        id: userId,
+        full_name: name || null,
+      });
     }
 
     setLoading(false);
@@ -61,17 +62,14 @@ export default function AuthPage() {
       setError('');
       setOauthLoading(true);
 
-      // Dominios a los que queremos volver DESPUÉS de que Supabase
-      // complete el intercambio de OAuth.
+      // Después de que Supabase termine OAuth, vuelve a tu sitio:
       const origin =
-        typeof window !== 'undefined'
-          ? window.location.origin
-          : 'https://yumix.com.co';
+        typeof window !== 'undefined' ? window.location.origin : 'https://yumix.com.co';
 
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          // <<-- IMPORTANTE: tu SITIO, no el callback de Supabase
+          // ¡Tu SITIO! No el callback de Supabase.
           redirectTo: `${origin}/cuenta`,
         },
       });
@@ -88,24 +86,14 @@ export default function AuthPage() {
         <div className="auth-header">
           <div className="auth-logo">🛍️</div>
           <h1>{mode === 'login' ? 'Iniciar sesión' : 'Crear cuenta'}</h1>
-          <p>
-            {mode === 'login'
-              ? 'Bienvenido de vuelta'
-              : 'Regístrate para comprar más rápido'}
-          </p>
+          <p>{mode === 'login' ? 'Bienvenido de vuelta' : 'Regístrate para comprar más rápido'}</p>
         </div>
 
         <div className="auth-tabs">
-          <button
-            className={`tab ${mode === 'login' ? 'active' : ''}`}
-            onClick={() => setMode('login')}
-          >
+          <button className={`tab ${mode === 'login' ? 'active' : ''}`} onClick={() => setMode('login')}>
             Entrar
           </button>
-          <button
-            className={`tab ${mode === 'register' ? 'active' : ''}`}
-            onClick={() => setMode('register')}
-          >
+          <button className={`tab ${mode === 'register' ? 'active' : ''}`} onClick={() => setMode('register')}>
             Registrarme
           </button>
         </div>
@@ -127,18 +115,11 @@ export default function AuthPage() {
 
         <div className="divider"><span>o</span></div>
 
-        <form
-          className="auth-form"
-          onSubmit={mode === 'login' ? signInWithEmail : signUpWithEmail}
-        >
+        <form className="auth-form" onSubmit={mode === 'login' ? signInWithEmail : signUpWithEmail}>
           {mode === 'register' && (
             <div className="field">
               <label>Nombre</label>
-              <input
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Tu nombre"
-              />
+              <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Tu nombre" />
             </div>
           )}
 
@@ -173,17 +154,11 @@ export default function AuthPage() {
 
         <div className="auth-links">
           {mode === 'login' ? (
-            <a
-              href="/registro"
-              onClick={(e) => { e.preventDefault(); setMode('register'); }}
-            >
+            <a href="/registro" onClick={(e) => { e.preventDefault(); setMode('register'); }}>
               ¿No tienes cuenta? Regístrate
             </a>
           ) : (
-            <a
-              href="/login"
-              onClick={(e) => { e.preventDefault(); setMode('login'); }}
-            >
+            <a href="/login" onClick={(e) => { e.preventDefault(); setMode('login'); }}>
               ¿Ya tienes cuenta? Inicia sesión
             </a>
           )}
@@ -193,5 +168,3 @@ export default function AuthPage() {
     </section>
   );
 }
-
-       
