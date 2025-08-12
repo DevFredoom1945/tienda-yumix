@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { supabase } from '../../lib/supabase/client';
 
 export default function AuthPage() {
-  const [mode, setMode] = useState<'login' | 'register'>('login');
+  const [mode, setMode] = useState('login'); // 'login' | 'register'
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -15,7 +15,7 @@ export default function AuthPage() {
   const [oauthLoading, setOauthLoading] = useState(false);
   const router = useRouter();
 
-  const signInWithEmail = async (e: React.FormEvent) => {
+  const signInWithEmail = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
@@ -28,7 +28,7 @@ export default function AuthPage() {
     router.push('/cuenta');
   };
 
-  const signUpWithEmail = async (e: React.FormEvent) => {
+  const signUpWithEmail = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
@@ -59,13 +59,12 @@ export default function AuthPage() {
       setError('');
       setOauthLoading(true);
 
-      // Usa tu dominio en producción; en local se toma window.location.origin
       const origin =
         typeof window !== 'undefined'
           ? window.location.origin
           : 'https://yumix.com.co';
 
-      // 👇 IMPORTANTE: usar /auth/v1/callback (coincide con Google y Supabase)
+      // IMPORTANTE: usar /auth/v1/callback
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
@@ -85,7 +84,11 @@ export default function AuthPage() {
         <div className="auth-header">
           <div className="auth-logo">🛍️</div>
           <h1>{mode === 'login' ? 'Iniciar sesión' : 'Crear cuenta'}</h1>
-          <p>{mode === 'login' ? 'Bienvenido de vuelta' : 'Regístrate para comprar más rápido'}</p>
+          <p>
+            {mode === 'login'
+              ? 'Bienvenido de vuelta'
+              : 'Regístrate para comprar más rápido'}
+          </p>
         </div>
 
         <div className="auth-tabs">
@@ -120,11 +123,18 @@ export default function AuthPage() {
 
         <div className="divider"><span>o</span></div>
 
-        <form className="auth-form" onSubmit={mode === 'login' ? signInWithEmail : signUpWithEmail}>
+        <form
+          className="auth-form"
+          onSubmit={mode === 'login' ? signInWithEmail : signUpWithEmail}
+        >
           {mode === 'register' && (
             <div className="field">
               <label>Nombre</label>
-              <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Tu nombre" />
+              <input
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Tu nombre"
+              />
             </div>
           )}
 
@@ -185,4 +195,3 @@ export default function AuthPage() {
     </section>
   );
 }
-
