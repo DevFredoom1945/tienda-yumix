@@ -5,6 +5,11 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '../../lib/supabase/client';
 
+// URL de retorno a TU sitio después de login (no confundir con el redirect_uri de Google)
+const SITE_RETURN = typeof window !== 'undefined'
+  ? `${window.location.origin}/cuenta`
+  : 'https://yumix.com.co/cuenta';
+
 export default function AuthPage() {
   const [mode, setMode] = useState('login'); // 'login' | 'register'
   const [name, setName] = useState('');
@@ -15,6 +20,7 @@ export default function AuthPage() {
   const [oauthLoading, setOauthLoading] = useState(false);
   const router = useRouter();
 
+  // -------- Email / Password --------
   const signInWithEmail = async (e) => {
     e.preventDefault();
     setError('');
@@ -38,6 +44,7 @@ export default function AuthPage() {
     const { data, error } = await supabase.auth.signUp({
       email: email.trim(),
       password,
+      options: { emailRedirectTo: SITE_RETURN }, // por si confirmación por correo
     });
 
     if (error) {
@@ -45,6 +52,7 @@ export default function AuthPage() {
       return setError(error.message);
     }
 
+    // Crear/actualizar perfil básico
     const userId = data.user?.id;
     if (userId) {
       await supabase.from('profiles').upsert({
@@ -57,20 +65,19 @@ export default function AuthPage() {
     router.push('/cuenta');
   };
 
+  // -------- Google OAuth --------
   const signInWithGoogle = async () => {
     try {
       setError('');
       setOauthLoading(true);
 
-      // Después de que Supabase termine OAuth, vuelve a tu sitio:
-      const origin =
-        typeof window !== 'undefined' ? window.location.origin : 'https://yumix.com.co';
-
+      // Importante: 'redirectTo' es adonde volverás en TU sitio.
+      // El 'redirect_uri' que Google valida SIEMPRE es el callback de Supabase,
+      // se configura en Google Cloud (ya lo dejamos).
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          // ¡Tu SITIO! No el callback de Supabase.
-          redirectTo: `${origin}/cuenta`,
+          redirectTo: SITE_RETURN,
         },
       });
 
@@ -90,10 +97,16 @@ export default function AuthPage() {
         </div>
 
         <div className="auth-tabs">
-          <button className={`tab ${mode === 'login' ? 'active' : ''}`} onClick={() => setMode('login')}>
+          <button
+            className={`tab ${mode === 'login' ? 'active' : ''}`}
+            onClick={() => setMode('login')}
+          >
             Entrar
           </button>
-          <button className={`tab ${mode === 'register' ? 'active' : ''}`} onClick={() => setMode('register')}>
+          <button
+            className={`tab ${mode === 'register' ? 'active' : ''}`}
+            onClick={() => setMode('register')}
+          >
             Registrarme
           </button>
         </div>
@@ -115,11 +128,18 @@ export default function AuthPage() {
 
         <div className="divider"><span>o</span></div>
 
-        <form className="auth-form" onSubmit={mode === 'login' ? signInWithEmail : signUpWithEmail}>
+        <form
+          className="auth-form"
+          onSubmit={mode === 'login' ? signInWithEmail : signUpWithEmail}
+        >
           {mode === 'register' && (
             <div className="field">
               <label>Nombre</label>
-              <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Tu nombre" />
+              <input
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Tu nombre"
+              />
             </div>
           )}
 
@@ -148,7 +168,7 @@ export default function AuthPage() {
           {error && <p className="error">{error}</p>}
 
           <button className="btn btn-primary" type="submit" disabled={loading}>
-            {loading ? 'Procesando…' : mode === 'login' ? 'Entrar' : 'Registrarme'}
+            {loading ? 'Procesando…' : (mode === 'login' ? 'Entrar' : 'Registrarme')}
           </button>
         </form>
 
