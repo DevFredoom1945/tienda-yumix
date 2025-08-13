@@ -1,12 +1,21 @@
 'use client';
 export const dynamic = 'force-dynamic';
 
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '../../lib/supabase/client';
 import { signIn } from 'next-auth/react'; // NextAuth (Google OAuth)
 
+/** Wrapper que provee el Suspense requerido por useSearchParams */
 export default function AuthPage() {
+  return (
+    <Suspense fallback={null}>
+      <AuthInner />
+    </Suspense>
+  );
+}
+
+function AuthInner() {
   const [mode, setMode] = useState('login'); // 'login' | 'register'
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -19,7 +28,7 @@ export default function AuthPage() {
   const search = useSearchParams();
 
   // Si llegaste redirigido por el middleware, respeta ?next=/ruta
-  const nextUrl = search?.get('next') || '/';
+  const nextUrl = (search && search.get('next')) || '/';
 
   // =========================
   // EMAIL / PASSWORD (Supabase)
@@ -186,5 +195,3 @@ export default function AuthPage() {
     </section>
   );
 }
-
-              
