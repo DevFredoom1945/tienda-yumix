@@ -3,8 +3,20 @@ import { NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 
 export async function middleware(req) {
+  const { pathname } = req.nextUrl;
+
+  // Salvaguarda extra: nunca interceptar /api, estáticos o favicon
+  if (
+    pathname.startsWith('/api') ||
+    pathname.startsWith('/_next/static') ||
+    pathname.startsWith('/_next/image') ||
+    pathname === '/favicon.ico'
+  ) {
+    return NextResponse.next();
+  }
+
   // Solo protegemos rutas que empiecen por /cuenta
-  if (!req.nextUrl.pathname.startsWith('/cuenta')) {
+  if (!pathname.startsWith('/cuenta')) {
     return NextResponse.next();
   }
 
@@ -24,19 +36,21 @@ export async function middleware(req) {
   );
 
   // ¿Hay usuario?
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   // Si NO hay sesión, redirigimos a /login y pasamos la ruta original en ?next=
   if (!user) {
     const url = new URL('/login', req.url);
-    url.searchParams.set('next', req.nextUrl.pathname);
+    url.searchParams.set('next', pathname);
     return NextResponse.redirect(url);
   }
 
   return res;
 }
 
-// Solo aplicar el middleware a /cuenta/*
+// Mantener el alcance del middleware SOLO en /cuenta/*
 export const config = {
   matcher: ['/cuenta/:path*'],
 };
