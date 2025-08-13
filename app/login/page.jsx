@@ -1,10 +1,10 @@
 'use client';
 export const dynamic = 'force-dynamic';
 
-import { Suspense, useState } from 'react';
+import { Suspense, useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '../../lib/supabase/client';
-import { signIn } from 'next-auth/react'; // NextAuth (Google OAuth)
+import { signIn } from 'next-auth/react'; // Google con NextAuth
 
 /** Wrapper que provee el Suspense requerido por useSearchParams */
 export default function AuthPage() {
@@ -16,11 +16,13 @@ export default function AuthPage() {
 }
 
 function AuthInner() {
-  const [mode, setMode] = useState('login'); // 'login' | 'register'
+  const [mode, setMode] = useState<'login' | 'register'>('login');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+
+  const [error, setError] = useState<string>('');
+  const [hint, setHint] = useState<string>(''); // mensajito positivo
   const [loading, setLoading] = useState(false);
   const [oauthLoading, setOauthLoading] = useState(false);
 
@@ -30,14 +32,21 @@ function AuthInner() {
   // Si llegaste redirigido por el middleware, respeta ?next=/ruta
   const nextUrl = (search && search.get('next')) || '/cuenta';
 
-  // -------------------------------------------
-  // Helper: validación básica de contraseña
-  // -------------------------------------------
-  const isStrongPassword = (pwd) =>
-    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/.test(pwd); // 8+, minúscula, mayúscula, número
+  // =========================
+  // Si ya está logueado, no mostrar login
+  // =========================
+  useEffect(() => {
+    (async () => {
+      const { data } = await supabase.auth.getSession();
+      if (data.session?.user) {
+        router.replace(nextUrl);
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // -------------------------------------------
-  // Helper: upsert a la tabla public.users_app
+  // Helper: upsert a la tabla public.users_app (única por email)
   // -------------------------------------------
   async function upsertUsersApp({
     email,
@@ -45,16 +54,21 @@ function AuthInner() {
     provider = 'email',
     auth_id = null,
     avatar_url = null,
+  }: {
+    email: string;
+    full_name?: string | null;
+    provider?: string;
+    auth_id?: string | null;
+    avatar_url?: string | null;
   }) {
     if (!email) return;
 
-    // onConflict: 'email' asegura 1 fila por email (actualiza si ya existe)
     await supabase
       .from('users_app')
       .upsert(
         {
           email,
-          full_name,
+        full_name,
           provider,
           auth_id,
           avatar_url,
@@ -65,11 +79,28 @@ function AuthInner() {
   }
 
   // =========================
+  // Validación de contraseña
+  // =========================
+  const passError = useMemo(() => {
+    if (mode !== 'register') return '';
+    if (!password) return '';
+    const hasLen = password.length >= 8;
+    const hasUpper = /[A-ZÁÉÍÓÚÜÑ]/.test(password);
+    const hasLower = /[a-záéíóúüñ]/.test(password);
+    const hasNum = /\d/.test(password);
+    if (!hasLen || !hasUpper || !hasLower || !hasNum) {
+      return 'La contraseña debe tener 8+ caracteres e incluir mayúscula, minúscula y número.';
+    }
+    return '';
+  }, [password, mode]);
+
+  // =========================
   // EMAIL / PASSWORD (Supabase)
   // =========================
-  const signInWithEmail = async (e) => {
+  const signInWithEmail = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setHint('');
     setLoading(true);
 
     const { data, error } = await supabase.auth.signInWithPassword({
@@ -80,20 +111,18 @@ function AuthInner() {
     setLoading(false);
 
     if (error) {
-      const msg = (error.message || '').toLowerCase();
-
-      if (msg.includes('invalid login credentials')) {
-        return setError('Datos incorrectos. ¿No tienes cuenta? Regístrate.');
+      // traducciones comunes
+      if (/Invalid login credentials/i.test(error.message)) {
+        setError('Correo o contraseña no válidos. ¿Aún no tienes cuenta? Regístrate.');
+      } else {
+        setError(error.message);
       }
-      if (msg.includes('email not confirmed')) {
-        return setError('Debes confirmar tu correo antes de entrar.');
-      }
-      // mensaje genérico
-      return setError('No encontramos una cuenta con ese correo. Regístrate.');
+      return;
     }
 
-    // Refresca/crea entrada en users_app
     const user = data?.user ?? (await supabase.auth.getUser()).data?.user;
+
+    // Refresca/crea entrada en users_app
     await upsertUsersApp({
       email: email.trim(),
       full_name: user?.user_metadata?.full_name || null,
@@ -102,35 +131,35 @@ function AuthInner() {
       avatar_url: user?.user_metadata?.avatar_url || null,
     });
 
-    router.push(nextUrl);
+    router.replace(nextUrl);
   };
 
-  const signUpWithEmail = async (e) => {
+  const signUpWithEmail = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setHint('');
 
-    // Reglas mínimas de seguridad
-    if (!isStrongPassword(password)) {
-      return setError(
-        'La contraseña debe tener al menos 8 caracteres, con mayúscula, minúscula y número.'
-      );
+    if (passError) {
+      setError(passError);
+      return;
     }
 
     setLoading(true);
-
     const { data, error } = await supabase.auth.signUp({
       email: email.trim(),
       password,
+      // options: { emailRedirectTo: typeof window !== 'undefined' ? `${window.location.origin}/cuenta` : 'https://yumix.com.co/cuenta' },
     });
-
     setLoading(false);
 
     if (error) {
-      const msg = (error.message || '').toLowerCase();
-      if (msg.includes('already registered') || msg.includes('exists')) {
-        return setError('Este correo ya está registrado. Inicia sesión.');
+      // Mensaje amistoso si el correo ya existe
+      if (/user.*exists/i.test(error.message) || /already/i.test(error.message)) {
+        setError('Este correo ya está registrado. Inicia sesión.');
+      } else {
+        setError(error.message);
       }
-      return setError('No se pudo crear la cuenta. Intenta más tarde.');
+      return;
     }
 
     // Crear/actualizar perfil básico en tu tabla profiles
@@ -150,8 +179,11 @@ function AuthInner() {
       auth_id: userId || null,
     });
 
-    // Llevar a completar perfil tras registrarse
-    router.push('/cuenta/completar');
+    // Aviso + redirección
+    setHint('¡Cuenta creada con éxito! Te redirigimos a tu perfil…');
+    setTimeout(() => {
+      router.replace('/cuenta/perfil?welcome=1');
+    }, 800);
   };
 
   // =========================
@@ -159,12 +191,13 @@ function AuthInner() {
   // =========================
   const signInWithGoogle = async () => {
     setError('');
+    setHint('');
     setOauthLoading(true);
     try {
-      // Va por NextAuth (no Supabase). El upsert a users_app debe estar
-      // en tu handler de NextAuth (app/api/auth/[...nextauth]/route.js).
+      // Va por NextAuth (no Supabase). El upsert a users_app
+      // lo tenemos en el handler NextAuth tras login exitoso.
       await signIn('google', { callbackUrl: nextUrl });
-    } catch (e) {
+    } catch (e: any) {
       setError(e?.message || 'Error conectando con Google');
     } finally {
       setOauthLoading(false);
@@ -195,6 +228,10 @@ function AuthInner() {
           </button>
         </div>
 
+        {/* Avisos */}
+        {hint && <p className="hint" role="status">{hint}</p>}
+        {error && <p className="error" role="alert">{error}</p>}
+
         {/* Google con NextAuth */}
         <button
           className="btn btn-google"
@@ -212,9 +249,6 @@ function AuthInner() {
         </button>
 
         <div className="divider"><span>o</span></div>
-
-        {/* Mensaje de error global */}
-        {error && <p className="error">{error}</p>}
 
         <form
           className="auth-form"
@@ -239,6 +273,7 @@ function AuthInner() {
               onChange={(e) => setEmail(e.target.value)}
               required
               placeholder="usuario@correo.com"
+              autoComplete="email"
             />
           </div>
 
@@ -250,13 +285,17 @@ function AuthInner() {
               onChange={(e) => setPassword(e.target.value)}
               required
               placeholder="••••••••"
+              autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+              aria-invalid={!!passError}
             />
             {mode === 'register' && (
-              <small>Debe tener 8+ caracteres, con mayúscula, minúscula y número.</small>
+              <small className="help">
+                Debe tener 8+ caracteres, con mayúscula, minúscula y número.
+              </small>
             )}
           </div>
 
-          <button className="btn btn-primary" type="submit" disabled={loading}>
+          <button className="btn btn-primary" type="submit" disabled={loading || (!!passError && mode==='register')}>
             {loading ? 'Procesando…' : (mode === 'login' ? 'Entrar' : 'Registrarme')}
           </button>
         </form>
