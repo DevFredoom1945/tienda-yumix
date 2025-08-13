@@ -28,7 +28,13 @@ function AuthInner() {
   const search = useSearchParams();
 
   // Si llegaste redirigido por el middleware, respeta ?next=/ruta
-  const nextUrl = (search && search.get('next')) || '/';
+  const nextUrl = (search && search.get('next')) || '/cuenta';
+
+  // -------------------------------------------
+  // Helper: validación básica de contraseña
+  // -------------------------------------------
+  const isStrongPassword = (pwd) =>
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/.test(pwd); // 8+, minúscula, mayúscula, número
 
   // -------------------------------------------
   // Helper: upsert a la tabla public.users_app
@@ -72,7 +78,19 @@ function AuthInner() {
     });
 
     setLoading(false);
-    if (error) return setError(error.message);
+
+    if (error) {
+      const msg = (error.message || '').toLowerCase();
+
+      if (msg.includes('invalid login credentials')) {
+        return setError('Datos incorrectos. ¿No tienes cuenta? Regístrate.');
+      }
+      if (msg.includes('email not confirmed')) {
+        return setError('Debes confirmar tu correo antes de entrar.');
+      }
+      // mensaje genérico
+      return setError('No encontramos una cuenta con ese correo. Regístrate.');
+    }
 
     // Refresca/crea entrada en users_app
     const user = data?.user ?? (await supabase.auth.getUser()).data?.user;
@@ -84,23 +102,35 @@ function AuthInner() {
       avatar_url: user?.user_metadata?.avatar_url || null,
     });
 
-    router.push('/cuenta');
+    router.push(nextUrl);
   };
 
   const signUpWithEmail = async (e) => {
     e.preventDefault();
     setError('');
+
+    // Reglas mínimas de seguridad
+    if (!isStrongPassword(password)) {
+      return setError(
+        'La contraseña debe tener al menos 8 caracteres, con mayúscula, minúscula y número.'
+      );
+    }
+
     setLoading(true);
 
     const { data, error } = await supabase.auth.signUp({
       email: email.trim(),
       password,
-      // options: { emailRedirectTo: typeof window !== 'undefined' ? `${window.location.origin}/cuenta` : 'https://yumix.com.co/cuenta' },
     });
 
+    setLoading(false);
+
     if (error) {
-      setLoading(false);
-      return setError(error.message);
+      const msg = (error.message || '').toLowerCase();
+      if (msg.includes('already registered') || msg.includes('exists')) {
+        return setError('Este correo ya está registrado. Inicia sesión.');
+      }
+      return setError('No se pudo crear la cuenta. Intenta más tarde.');
     }
 
     // Crear/actualizar perfil básico en tu tabla profiles
@@ -120,8 +150,8 @@ function AuthInner() {
       auth_id: userId || null,
     });
 
-    setLoading(false);
-    router.push('/cuenta');
+    // Llevar a completar perfil tras registrarse
+    router.push('/cuenta/completar');
   };
 
   // =========================
@@ -131,9 +161,8 @@ function AuthInner() {
     setError('');
     setOauthLoading(true);
     try {
-      // Va por NextAuth (no Supabase). El upsert a users_app lo tenemos
-      // en el handler de NextAuth (app/api/auth/[...nextauth]/route.js),
-      // justo después de la autenticación exitosa.
+      // Va por NextAuth (no Supabase). El upsert a users_app debe estar
+      // en tu handler de NextAuth (app/api/auth/[...nextauth]/route.js).
       await signIn('google', { callbackUrl: nextUrl });
     } catch (e) {
       setError(e?.message || 'Error conectando con Google');
@@ -184,6 +213,9 @@ function AuthInner() {
 
         <div className="divider"><span>o</span></div>
 
+        {/* Mensaje de error global */}
+        {error && <p className="error">{error}</p>}
+
         <form
           className="auth-form"
           onSubmit={mode === 'login' ? signInWithEmail : signUpWithEmail}
@@ -219,9 +251,10 @@ function AuthInner() {
               required
               placeholder="••••••••"
             />
+            {mode === 'register' && (
+              <small>Debe tener 8+ caracteres, con mayúscula, minúscula y número.</small>
+            )}
           </div>
-
-          {error && <p className="error">{error}</p>}
 
           <button className="btn btn-primary" type="submit" disabled={loading}>
             {loading ? 'Procesando…' : (mode === 'login' ? 'Entrar' : 'Registrarme')}
