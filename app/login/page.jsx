@@ -30,6 +30,34 @@ function AuthInner() {
   // Si llegaste redirigido por el middleware, respeta ?next=/ruta
   const nextUrl = (search && search.get('next')) || '/';
 
+  // -------------------------------------------
+  // Helper: upsert a la tabla public.users_app
+  // -------------------------------------------
+  async function upsertUsersApp({
+    email,
+    full_name = null,
+    provider = 'email',
+    auth_id = null,
+    avatar_url = null,
+  }) {
+    if (!email) return;
+
+    // onConflict: 'email' asegura 1 fila por email (actualiza si ya existe)
+    await supabase
+      .from('users_app')
+      .upsert(
+        {
+          email,
+          full_name,
+          provider,
+          auth_id,
+          avatar_url,
+          last_login: new Date().toISOString(),
+        },
+        { onConflict: 'email' }
+      );
+  }
+
   // =========================
   // EMAIL / PASSWORD (Supabase)
   // =========================
@@ -38,13 +66,24 @@ function AuthInner() {
     setError('');
     setLoading(true);
 
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email: email.trim(),
       password,
     });
 
     setLoading(false);
     if (error) return setError(error.message);
+
+    // Refresca/crea entrada en users_app
+    const user = data?.user ?? (await supabase.auth.getUser()).data?.user;
+    await upsertUsersApp({
+      email: email.trim(),
+      full_name: user?.user_metadata?.full_name || null,
+      provider: 'email',
+      auth_id: user?.id || null,
+      avatar_url: user?.user_metadata?.avatar_url || null,
+    });
+
     router.push('/cuenta');
   };
 
@@ -64,7 +103,7 @@ function AuthInner() {
       return setError(error.message);
     }
 
-    // Crear/actualizar perfil básico en tu tabla (opcional)
+    // Crear/actualizar perfil básico en tu tabla profiles
     const userId = data.user?.id;
     if (userId) {
       await supabase.from('profiles').upsert({
@@ -72,6 +111,14 @@ function AuthInner() {
         full_name: name || null,
       });
     }
+
+    // Upsert también en users_app (1 fila por email)
+    await upsertUsersApp({
+      email: email.trim(),
+      full_name: name || null,
+      provider: 'email',
+      auth_id: userId || null,
+    });
 
     setLoading(false);
     router.push('/cuenta');
@@ -84,7 +131,9 @@ function AuthInner() {
     setError('');
     setOauthLoading(true);
     try {
-      // Va por NextAuth (no Supabase)
+      // Va por NextAuth (no Supabase). El upsert a users_app lo tenemos
+      // en el handler de NextAuth (app/api/auth/[...nextauth]/route.js),
+      // justo después de la autenticación exitosa.
       await signIn('google', { callbackUrl: nextUrl });
     } catch (e) {
       setError(e?.message || 'Error conectando con Google');
