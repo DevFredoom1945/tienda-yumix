@@ -4,10 +4,10 @@ export const dynamic = 'force-dynamic';
 import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '../../lib/supabase/client';
-import { signIn } from 'next-auth/react'; // ⬅️ NextAuth (Google OAuth)
+import { signIn } from 'next-auth/react'; // NextAuth (Google OAuth)
 
 export default function AuthPage() {
-  const [mode, setMode] = useState<'login' | 'register'>('login');
+  const [mode, setMode] = useState('login'); // 'login' | 'register'
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -19,12 +19,12 @@ export default function AuthPage() {
   const search = useSearchParams();
 
   // Si llegaste redirigido por el middleware, respeta ?next=/ruta
-  const nextUrl = search.get('next') || '/';
+  const nextUrl = search?.get('next') || '/';
 
   // =========================
   // EMAIL / PASSWORD (Supabase)
   // =========================
-  const signInWithEmail = async (e: React.FormEvent) => {
+  const signInWithEmail = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
@@ -39,7 +39,7 @@ export default function AuthPage() {
     router.push('/cuenta');
   };
 
-  const signUpWithEmail = async (e: React.FormEvent) => {
+  const signUpWithEmail = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
@@ -47,7 +47,6 @@ export default function AuthPage() {
     const { data, error } = await supabase.auth.signUp({
       email: email.trim(),
       password,
-      // Si usas confirmación por email en Supabase puedes activar:
       // options: { emailRedirectTo: typeof window !== 'undefined' ? `${window.location.origin}/cuenta` : 'https://yumix.com.co/cuenta' },
     });
 
@@ -76,10 +75,9 @@ export default function AuthPage() {
     setError('');
     setOauthLoading(true);
     try {
-      // Llama al flujo de NextAuth. El callback de Google será el de NextAuth,
-      // por lo que ya no usará el callback de Supabase (y no aparecerá el mismatch).
+      // Va por NextAuth (no Supabase)
       await signIn('google', { callbackUrl: nextUrl });
-    } catch (e: any) {
+    } catch (e) {
       setError(e?.message || 'Error conectando con Google');
     } finally {
       setOauthLoading(false);
@@ -110,7 +108,7 @@ export default function AuthPage() {
           </button>
         </div>
 
-        {/* Botón Google — ahora con NextAuth */}
+        {/* Google con NextAuth */}
         <button
           className="btn btn-google"
           onClick={signInWithGoogle}
@@ -188,3 +186,5 @@ export default function AuthPage() {
     </section>
   );
 }
+
+              
