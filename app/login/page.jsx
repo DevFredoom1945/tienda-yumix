@@ -2,26 +2,29 @@
 export const dynamic = 'force-dynamic';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '../../lib/supabase/client';
-
-// URL de retorno a TU sitio después de login (no confundir con el redirect_uri de Google)
-const SITE_RETURN = typeof window !== 'undefined'
-  ? `${window.location.origin}/cuenta`
-  : 'https://yumix.com.co/cuenta';
+import { signIn } from 'next-auth/react'; // ⬅️ NextAuth (Google OAuth)
 
 export default function AuthPage() {
-  const [mode, setMode] = useState('login'); // 'login' | 'register'
+  const [mode, setMode] = useState<'login' | 'register'>('login');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [oauthLoading, setOauthLoading] = useState(false);
-  const router = useRouter();
 
-  // -------- Email / Password --------
-  const signInWithEmail = async (e) => {
+  const router = useRouter();
+  const search = useSearchParams();
+
+  // Si llegaste redirigido por el middleware, respeta ?next=/ruta
+  const nextUrl = search.get('next') || '/';
+
+  // =========================
+  // EMAIL / PASSWORD (Supabase)
+  // =========================
+  const signInWithEmail = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setLoading(true);
@@ -36,7 +39,7 @@ export default function AuthPage() {
     router.push('/cuenta');
   };
 
-  const signUpWithEmail = async (e) => {
+  const signUpWithEmail = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setLoading(true);
@@ -44,7 +47,8 @@ export default function AuthPage() {
     const { data, error } = await supabase.auth.signUp({
       email: email.trim(),
       password,
-      options: { emailRedirectTo: SITE_RETURN }, // por si confirmación por correo
+      // Si usas confirmación por email en Supabase puedes activar:
+      // options: { emailRedirectTo: typeof window !== 'undefined' ? `${window.location.origin}/cuenta` : 'https://yumix.com.co/cuenta' },
     });
 
     if (error) {
@@ -52,7 +56,7 @@ export default function AuthPage() {
       return setError(error.message);
     }
 
-    // Crear/actualizar perfil básico
+    // Crear/actualizar perfil básico en tu tabla (opcional)
     const userId = data.user?.id;
     if (userId) {
       await supabase.from('profiles').upsert({
@@ -65,23 +69,18 @@ export default function AuthPage() {
     router.push('/cuenta');
   };
 
-  // -------- Google OAuth --------
+  // =========================
+  // GOOGLE OAUTH (NextAuth)
+  // =========================
   const signInWithGoogle = async () => {
+    setError('');
+    setOauthLoading(true);
     try {
-      setError('');
-      setOauthLoading(true);
-
-      // Importante: 'redirectTo' es adonde volverás en TU sitio.
-      // El 'redirect_uri' que Google valida SIEMPRE es el callback de Supabase,
-      // se configura en Google Cloud (ya lo dejamos).
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: SITE_RETURN,
-        },
-      });
-
-      if (error) setError(error.message);
+      // Llama al flujo de NextAuth. El callback de Google será el de NextAuth,
+      // por lo que ya no usará el callback de Supabase (y no aparecerá el mismatch).
+      await signIn('google', { callbackUrl: nextUrl });
+    } catch (e: any) {
+      setError(e?.message || 'Error conectando con Google');
     } finally {
       setOauthLoading(false);
     }
@@ -111,6 +110,7 @@ export default function AuthPage() {
           </button>
         </div>
 
+        {/* Botón Google — ahora con NextAuth */}
         <button
           className="btn btn-google"
           onClick={signInWithGoogle}
