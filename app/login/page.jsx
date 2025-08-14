@@ -16,13 +16,13 @@ export default function AuthPage() {
 }
 
 function AuthInner() {
-  const [mode, setMode] = useState<'login' | 'register'>('login');
+  const [mode, setMode] = useState('login'); // 'login' | 'register'
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  const [error, setError] = useState<string>('');
-  const [hint, setHint] = useState<string>(''); // mensajito positivo
+  const [error, setError] = useState('');
+  const [hint, setHint] = useState(''); // mensajito positivo
   const [loading, setLoading] = useState(false);
   const [oauthLoading, setOauthLoading] = useState(false);
 
@@ -32,9 +32,7 @@ function AuthInner() {
   // Si llegaste redirigido por el middleware, respeta ?next=/ruta
   const nextUrl = (search && search.get('next')) || '/cuenta';
 
-  // =========================
   // Si ya está logueado, no mostrar login
-  // =========================
   useEffect(() => {
     (async () => {
       const { data } = await supabase.auth.getSession();
@@ -45,21 +43,13 @@ function AuthInner() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // -------------------------------------------
   // Helper: upsert a la tabla public.users_app (única por email)
-  // -------------------------------------------
   async function upsertUsersApp({
     email,
     full_name = null,
     provider = 'email',
     auth_id = null,
     avatar_url = null,
-  }: {
-    email: string;
-    full_name?: string | null;
-    provider?: string;
-    auth_id?: string | null;
-    avatar_url?: string | null;
   }) {
     if (!email) return;
 
@@ -68,7 +58,7 @@ function AuthInner() {
       .upsert(
         {
           email,
-        full_name,
+          full_name,
           provider,
           auth_id,
           avatar_url,
@@ -78,9 +68,7 @@ function AuthInner() {
       );
   }
 
-  // =========================
   // Validación de contraseña
-  // =========================
   const passError = useMemo(() => {
     if (mode !== 'register') return '';
     if (!password) return '';
@@ -94,10 +82,8 @@ function AuthInner() {
     return '';
   }, [password, mode]);
 
-  // =========================
   // EMAIL / PASSWORD (Supabase)
-  // =========================
-  const signInWithEmail = async (e: React.FormEvent) => {
+  const signInWithEmail = async (e) => {
     e.preventDefault();
     setError('');
     setHint('');
@@ -111,7 +97,6 @@ function AuthInner() {
     setLoading(false);
 
     if (error) {
-      // traducciones comunes
       if (/Invalid login credentials/i.test(error.message)) {
         setError('Correo o contraseña no válidos. ¿Aún no tienes cuenta? Regístrate.');
       } else {
@@ -120,9 +105,9 @@ function AuthInner() {
       return;
     }
 
-    const user = data?.user ?? (await supabase.auth.getUser()).data?.user;
+    const user =
+      data?.user ?? (await supabase.auth.getUser()).data?.user;
 
-    // Refresca/crea entrada en users_app
     await upsertUsersApp({
       email: email.trim(),
       full_name: user?.user_metadata?.full_name || null,
@@ -134,7 +119,7 @@ function AuthInner() {
     router.replace(nextUrl);
   };
 
-  const signUpWithEmail = async (e: React.FormEvent) => {
+  const signUpWithEmail = async (e) => {
     e.preventDefault();
     setError('');
     setHint('');
@@ -153,7 +138,6 @@ function AuthInner() {
     setLoading(false);
 
     if (error) {
-      // Mensaje amistoso si el correo ya existe
       if (/user.*exists/i.test(error.message) || /already/i.test(error.message)) {
         setError('Este correo ya está registrado. Inicia sesión.');
       } else {
@@ -162,7 +146,6 @@ function AuthInner() {
       return;
     }
 
-    // Crear/actualizar perfil básico en tu tabla profiles
     const userId = data.user?.id;
     if (userId) {
       await supabase.from('profiles').upsert({
@@ -171,7 +154,6 @@ function AuthInner() {
       });
     }
 
-    // Upsert también en users_app (1 fila por email)
     await upsertUsersApp({
       email: email.trim(),
       full_name: name || null,
@@ -179,25 +161,20 @@ function AuthInner() {
       auth_id: userId || null,
     });
 
-    // Aviso + redirección
     setHint('¡Cuenta creada con éxito! Te redirigimos a tu perfil…');
     setTimeout(() => {
       router.replace('/cuenta/perfil?welcome=1');
     }, 800);
   };
 
-  // =========================
   // GOOGLE OAUTH (NextAuth)
-  // =========================
   const signInWithGoogle = async () => {
     setError('');
     setHint('');
     setOauthLoading(true);
     try {
-      // Va por NextAuth (no Supabase). El upsert a users_app
-      // lo tenemos en el handler NextAuth tras login exitoso.
       await signIn('google', { callbackUrl: nextUrl });
-    } catch (e: any) {
+    } catch (e) {
       setError(e?.message || 'Error conectando con Google');
     } finally {
       setOauthLoading(false);
@@ -295,7 +272,11 @@ function AuthInner() {
             )}
           </div>
 
-          <button className="btn btn-primary" type="submit" disabled={loading || (!!passError && mode==='register')}>
+          <button
+            className="btn btn-primary"
+            type="submit"
+            disabled={loading || (!!passError && mode === 'register')}
+          >
             {loading ? 'Procesando…' : (mode === 'login' ? 'Entrar' : 'Registrarme')}
           </button>
         </form>
