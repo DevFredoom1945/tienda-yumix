@@ -82,7 +82,9 @@ function AuthInner() {
     return '';
   }, [password, mode]);
 
+  // =========================
   // EMAIL / PASSWORD (Supabase)
+  // =========================
   const signInWithEmail = async (e) => {
     e.preventDefault();
     setError('');
@@ -105,8 +107,7 @@ function AuthInner() {
       return;
     }
 
-    const user =
-      data?.user ?? (await supabase.auth.getUser()).data?.user;
+    const user = data?.user ?? (await supabase.auth.getUser()).data?.user;
 
     await upsertUsersApp({
       email: email.trim(),
@@ -119,6 +120,7 @@ function AuthInner() {
     router.replace(nextUrl);
   };
 
+  // *** MODIFICADO: aseguramos sesión tras el registro ***
   const signUpWithEmail = async (e) => {
     e.preventDefault();
     setError('');
@@ -146,6 +148,7 @@ function AuthInner() {
       return;
     }
 
+    // Crear/actualizar perfil básico en tu tabla profiles
     const userId = data.user?.id;
     if (userId) {
       await supabase.from('profiles').upsert({
@@ -154,6 +157,7 @@ function AuthInner() {
       });
     }
 
+    // Upsert también en users_app (1 fila por email)
     await upsertUsersApp({
       email: email.trim(),
       full_name: name || null,
@@ -161,13 +165,34 @@ function AuthInner() {
       auth_id: userId || null,
     });
 
+    // Asegurar que exista sesión:
+    let { data: sess } = await supabase.auth.getSession();
+
+    // Si NO hay sesión (p. ej. confirmación por email activada), intentamos abrirla
+    if (!sess?.session) {
+      const { error: signInErr } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password,
+      });
+
+      if (signInErr) {
+        // No pudimos abrir sesión: muy probable que requiera confirmar el correo
+        setHint('Cuenta creada con éxito. Revisa tu correo para confirmar tu cuenta antes de continuar.');
+        return;
+      }
+
+      // Relee sesión
+      sess = (await supabase.auth.getSession()).data;
+    }
+
+    // Ya hay sesión -> redirige al perfil
     setHint('¡Cuenta creada con éxito! Te redirigimos a tu perfil…');
-    setTimeout(() => {
-      router.replace('/cuenta/perfil?welcome=1');
-    }, 800);
+    router.replace('/cuenta/perfil?welcome=1');
   };
 
+  // =========================
   // GOOGLE OAUTH (NextAuth)
+  // =========================
   const signInWithGoogle = async () => {
     setError('');
     setHint('');
