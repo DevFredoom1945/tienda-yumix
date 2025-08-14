@@ -1,10 +1,10 @@
 'use client';
 export const dynamic = 'force-dynamic';
 
-import { Suspense, useEffect, useMemo, useState } from 'react';
+import { Suspense, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '../../lib/supabase/client';
-import { signIn } from 'next-auth/react'; // Google con NextAuth
+import { signIn } from 'next-auth/react'; // NextAuth (Google OAuth)
 
 /** Wrapper que provee el Suspense requerido por useSearchParams */
 export default function AuthPage() {
@@ -20,9 +20,7 @@ function AuthInner() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-
   const [error, setError] = useState('');
-  const [hint, setHint] = useState(''); // mensajito positivo
   const [loading, setLoading] = useState(false);
   const [oauthLoading, setOauthLoading] = useState(false);
 
@@ -32,18 +30,15 @@ function AuthInner() {
   // Si llegaste redirigido por el middleware, respeta ?next=/ruta
   const nextUrl = (search && search.get('next')) || '/cuenta';
 
-  // Si ya está logueado, no mostrar login
-  useEffect(() => {
-    (async () => {
-      const { data } = await supabase.auth.getSession();
-      if (data.session?.user) {
-        router.replace(nextUrl);
-      }
-    })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  // -------------------------------------------
+  // Helper: validación básica de contraseña
+  // -------------------------------------------
+  const isStrongPassword = (pwd) =>
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/.test(pwd); // 8+, minúscula, mayúscula, número
 
-  // Helper: upsert a la tabla public.users_app (única por email)
+  // -------------------------------------------
+  // Helper: upsert a la tabla public.users_app
+  // -------------------------------------------
   async function upsertUsersApp({
     email,
     full_name = null,
@@ -53,6 +48,7 @@ function AuthInner() {
   }) {
     if (!email) return;
 
+    // onConflict: 'email' asegura 1 fila por email (actualiza si ya existe)
     await supabase
       .from('users_app')
       .upsert(
@@ -68,27 +64,12 @@ function AuthInner() {
       );
   }
 
-  // Validación de contraseña
-  const passError = useMemo(() => {
-    if (mode !== 'register') return '';
-    if (!password) return '';
-    const hasLen = password.length >= 8;
-    const hasUpper = /[A-ZÁÉÍÓÚÜÑ]/.test(password);
-    const hasLower = /[a-záéíóúüñ]/.test(password);
-    const hasNum = /\d/.test(password);
-    if (!hasLen || !hasUpper || !hasLower || !hasNum) {
-      return 'La contraseña debe tener 8+ caracteres e incluir mayúscula, minúscula y número.';
-    }
-    return '';
-  }, [password, mode]);
-
   // =========================
   // EMAIL / PASSWORD (Supabase)
   // =========================
   const signInWithEmail = async (e) => {
     e.preventDefault();
     setError('');
-    setHint('');
     setLoading(true);
 
     const { data, error } = await supabase.auth.signInWithPassword({
@@ -99,16 +80,20 @@ function AuthInner() {
     setLoading(false);
 
     if (error) {
-      if (/Invalid login credentials/i.test(error.message)) {
-        setError('Correo o contraseña no válidos. ¿Aún no tienes cuenta? Regístrate.');
-      } else {
-        setError(error.message);
+      const msg = (error.message || '').toLowerCase();
+
+      if (msg.includes('invalid login credentials')) {
+        return setError('Datos incorrectos. ¿No tienes cuenta? Regístrate.');
       }
-      return;
+      if (msg.includes('email not confirmed')) {
+        return setError('Debes confirmar tu correo antes de entrar.');
+      }
+      // mensaje genérico
+      return setError('No encontramos una cuenta con ese correo. Regístrate.');
     }
 
+    // Refresca/crea entrada en users_app
     const user = data?.user ?? (await supabase.auth.getUser()).data?.user;
-
     await upsertUsersApp({
       email: email.trim(),
       full_name: user?.user_metadata?.full_name || null,
@@ -117,35 +102,35 @@ function AuthInner() {
       avatar_url: user?.user_metadata?.avatar_url || null,
     });
 
-    router.replace(nextUrl);
+    router.push(nextUrl);
   };
 
-  // *** MODIFICADO: aseguramos sesión tras el registro ***
   const signUpWithEmail = async (e) => {
     e.preventDefault();
     setError('');
-    setHint('');
 
-    if (passError) {
-      setError(passError);
-      return;
+    // Reglas mínimas de seguridad
+    if (!isStrongPassword(password)) {
+      return setError(
+        'La contraseña debe tener al menos 8 caracteres, con mayúscula, minúscula y número.'
+      );
     }
 
     setLoading(true);
+
     const { data, error } = await supabase.auth.signUp({
       email: email.trim(),
       password,
-      // options: { emailRedirectTo: typeof window !== 'undefined' ? `${window.location.origin}/cuenta` : 'https://yumix.com.co/cuenta' },
     });
+
     setLoading(false);
 
     if (error) {
-      if (/user.*exists/i.test(error.message) || /already/i.test(error.message)) {
-        setError('Este correo ya está registrado. Inicia sesión.');
-      } else {
-        setError(error.message);
+      const msg = (error.message || '').toLowerCase();
+      if (msg.includes('already registered') || msg.includes('exists')) {
+        return setError('Este correo ya está registrado. Inicia sesión.');
       }
-      return;
+      return setError('No se pudo crear la cuenta. Intenta más tarde.');
     }
 
     // Crear/actualizar perfil básico en tu tabla profiles
@@ -165,29 +150,8 @@ function AuthInner() {
       auth_id: userId || null,
     });
 
-    // Asegurar que exista sesión:
-    let { data: sess } = await supabase.auth.getSession();
-
-    // Si NO hay sesión (p. ej. confirmación por email activada), intentamos abrirla
-    if (!sess?.session) {
-      const { error: signInErr } = await supabase.auth.signInWithPassword({
-        email: email.trim(),
-        password,
-      });
-
-      if (signInErr) {
-        // No pudimos abrir sesión: muy probable que requiera confirmar el correo
-        setHint('Cuenta creada con éxito. Revisa tu correo para confirmar tu cuenta antes de continuar.');
-        return;
-      }
-
-      // Relee sesión
-      sess = (await supabase.auth.getSession()).data;
-    }
-
-    // Ya hay sesión -> redirige al perfil
-    setHint('¡Cuenta creada con éxito! Te redirigimos a tu perfil…');
-    router.replace('/cuenta/perfil?welcome=1');
+    // Llevar a completar perfil tras registrarse
+    router.push('/cuenta/completar');
   };
 
   // =========================
@@ -195,9 +159,10 @@ function AuthInner() {
   // =========================
   const signInWithGoogle = async () => {
     setError('');
-    setHint('');
     setOauthLoading(true);
     try {
+      // Va por NextAuth (no Supabase). El upsert a users_app debe estar
+      // en tu handler de NextAuth (app/api/auth/[...nextauth]/route.js).
       await signIn('google', { callbackUrl: nextUrl });
     } catch (e) {
       setError(e?.message || 'Error conectando con Google');
@@ -230,10 +195,6 @@ function AuthInner() {
           </button>
         </div>
 
-        {/* Avisos */}
-        {hint && <p className="hint" role="status">{hint}</p>}
-        {error && <p className="error" role="alert">{error}</p>}
-
         {/* Google con NextAuth */}
         <button
           className="btn btn-google"
@@ -251,6 +212,9 @@ function AuthInner() {
         </button>
 
         <div className="divider"><span>o</span></div>
+
+        {/* Mensaje de error global */}
+        {error && <p className="error">{error}</p>}
 
         <form
           className="auth-form"
@@ -275,7 +239,6 @@ function AuthInner() {
               onChange={(e) => setEmail(e.target.value)}
               required
               placeholder="usuario@correo.com"
-              autoComplete="email"
             />
           </div>
 
@@ -287,21 +250,13 @@ function AuthInner() {
               onChange={(e) => setPassword(e.target.value)}
               required
               placeholder="••••••••"
-              autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
-              aria-invalid={!!passError}
             />
             {mode === 'register' && (
-              <small className="help">
-                Debe tener 8+ caracteres, con mayúscula, minúscula y número.
-              </small>
+              <small>Debe tener 8+ caracteres, con mayúscula, minúscula y número.</small>
             )}
           </div>
 
-          <button
-            className="btn btn-primary"
-            type="submit"
-            disabled={loading || (!!passError && mode === 'register')}
-          >
+          <button className="btn btn-primary" type="submit" disabled={loading}>
             {loading ? 'Procesando…' : (mode === 'login' ? 'Entrar' : 'Registrarme')}
           </button>
         </form>
@@ -321,4 +276,3 @@ function AuthInner() {
       </div>
     </section>
   );
-}
